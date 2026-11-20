@@ -1,0 +1,522 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Authenticated merchant profile and GST business registration settings.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "maxLength": 128,
+          "description": "Firebase Auth UID of the account owner."
+        },
+        "email": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "Verified account email address."
+        },
+        "displayName": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Account holder full name."
+        },
+        "businessName": {
+          "type": "string",
+          "maxLength": 140,
+          "description": "Registered legal business name printed on GST bills."
+        },
+        "gstin": {
+          "type": "string",
+          "maxLength": 20,
+          "description": "Merchant 15-character GSTIN."
+        },
+        "stateCode": {
+          "type": "string",
+          "maxLength": 60,
+          "description": "Home state for intra-state vs inter-state GST classification."
+        },
+        "district": {
+          "type": "string",
+          "maxLength": 80,
+          "description": "Store home district within the selected state."
+        },
+        "address": {
+          "type": "string",
+          "maxLength": 300,
+          "description": "Registered business address."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp."
+        }
+      },
+      "required": [
+        "uid",
+        "email",
+        "displayName",
+        "businessName",
+        "gstin",
+        "stateCode",
+        "address",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "StackItem": {
+      "title": "Stack Inventory Item",
+      "description": "Inventory stack batch tracking sold-out and upgoing quantities, HSN codes, and GST rates.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "maxLength": 128
+        },
+        "sku": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 140
+        },
+        "hsnCode": {
+          "type": "string",
+          "maxLength": 20
+        },
+        "category": {
+          "type": "string",
+          "maxLength": 60
+        },
+        "unit": {
+          "type": "string",
+          "maxLength": 20
+        },
+        "unitPrice": {
+          "type": "number"
+        },
+        "gstRate": {
+          "type": "number"
+        },
+        "availableQty": {
+          "type": "number"
+        },
+        "upgoingQty": {
+          "type": "number"
+        },
+        "soldQty": {
+          "type": "number"
+        },
+        "reorderLevel": {
+          "type": "number"
+        },
+        "stackStatus": {
+          "type": "string",
+          "enum": ["upgoing", "in_stock", "sold_out"],
+          "maxLength": 20
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "ownerId",
+        "sku",
+        "name",
+        "hsnCode",
+        "category",
+        "unit",
+        "unitPrice",
+        "gstRate",
+        "availableQty",
+        "upgoingQty",
+        "soldQty",
+        "reorderLevel",
+        "stackStatus",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Customer": {
+      "title": "Customer",
+      "description": "B2B or retail client profile for GST billing and receivables.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "maxLength": 128
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "companyName": {
+          "type": "string",
+          "maxLength": 140
+        },
+        "gstin": {
+          "type": "string",
+          "maxLength": 20
+        },
+        "phone": {
+          "type": "string",
+          "maxLength": 24
+        },
+        "email": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "stateCode": {
+          "type": "string",
+          "maxLength": 60
+        },
+        "address": {
+          "type": "string",
+          "maxLength": 300
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "ownerId",
+        "name",
+        "companyName",
+        "gstin",
+        "phone",
+        "email",
+        "stateCode",
+        "address",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Invoice": {
+      "title": "GST Invoice",
+      "description": "GST tax invoice with CGST/SGST/IGST calculations and initial vs remaining balance tracking.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "maxLength": 128
+        },
+        "invoiceNumber": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "billingMonth": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}$",
+          "maxLength": 7
+        },
+        "customerId": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "maxLength": 128
+        },
+        "customerName": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "customerCompany": {
+          "type": "string",
+          "maxLength": 140
+        },
+        "customerGstin": {
+          "type": "string",
+          "maxLength": 20
+        },
+        "customerPhone": {
+          "type": "string",
+          "maxLength": 24
+        },
+        "customerState": {
+          "type": "string",
+          "maxLength": 60
+        },
+        "isInterState": {
+          "type": "boolean"
+        },
+        "itemsSummary": {
+          "type": "string",
+          "maxLength": 250
+        },
+        "lineItems": {
+          "type": "array",
+          "description": "Bounded list of up to 20 line items on the invoice."
+        },
+        "taxableAmount": {
+          "type": "number"
+        },
+        "cgstAmount": {
+          "type": "number"
+        },
+        "sgstAmount": {
+          "type": "number"
+        },
+        "igstAmount": {
+          "type": "number"
+        },
+        "totalGstAmount": {
+          "type": "number"
+        },
+        "grandTotal": {
+          "type": "number"
+        },
+        "initialPaidAmount": {
+          "type": "number"
+        },
+        "paidAmount": {
+          "type": "number"
+        },
+        "remainingAmount": {
+          "type": "number"
+        },
+        "paymentStatus": {
+          "type": "string",
+          "enum": ["paid", "partial", "unpaid"],
+          "maxLength": 16
+        },
+        "dueDate": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "maxLength": 10
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 400
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "ownerId",
+        "invoiceNumber",
+        "billingMonth",
+        "customerId",
+        "customerName",
+        "customerCompany",
+        "customerGstin",
+        "customerPhone",
+        "customerState",
+        "isInterState",
+        "itemsSummary",
+        "lineItems",
+        "taxableAmount",
+        "cgstAmount",
+        "sgstAmount",
+        "igstAmount",
+        "totalGstAmount",
+        "grandTotal",
+        "initialPaidAmount",
+        "paidAmount",
+        "remainingAmount",
+        "paymentStatus",
+        "dueDate",
+        "notes",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "PaymentRecord": {
+      "title": "Payment Receipt",
+      "description": "Individual customer payment transaction linked to an invoice.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "maxLength": 128
+        },
+        "invoiceId": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "maxLength": 128
+        },
+        "invoiceNumber": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "customerId": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "maxLength": 128
+        },
+        "customerName": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "amount": {
+          "type": "number"
+        },
+        "paymentMethod": {
+          "type": "string",
+          "enum": ["UPI", "NEFT", "RTGS", "Cheque", "Cash"],
+          "maxLength": 16
+        },
+        "referenceNo": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "billingMonth": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}$",
+          "maxLength": 7
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "ownerId",
+        "invoiceId",
+        "invoiceNumber",
+        "customerId",
+        "customerName",
+        "amount",
+        "paymentMethod",
+        "referenceNo",
+        "billingMonth",
+        "createdAt"
+      ]
+    },
+    "GstFiling": {
+      "title": "Monthly GST Filing & Auto-Bill",
+      "description": "Automated monthly GST return summary and tax remittance status.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "maxLength": 128
+        },
+        "billingMonth": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}$",
+          "maxLength": 7
+        },
+        "totalInvoices": {
+          "type": "number"
+        },
+        "totalTaxableValue": {
+          "type": "number"
+        },
+        "totalCgst": {
+          "type": "number"
+        },
+        "totalSgst": {
+          "type": "number"
+        },
+        "totalIgst": {
+          "type": "number"
+        },
+        "totalGstLiability": {
+          "type": "number"
+        },
+        "gstCollected": {
+          "type": "number"
+        },
+        "gstPending": {
+          "type": "number"
+        },
+        "challanNumber": {
+          "type": "string",
+          "maxLength": 60
+        },
+        "filingStatus": {
+          "type": "string",
+          "enum": ["generated", "paid"],
+          "maxLength": 16
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "ownerId",
+        "billingMonth",
+        "totalInvoices",
+        "totalTaxableValue",
+        "totalCgst",
+        "totalSgst",
+        "totalIgst",
+        "totalGstLiability",
+        "gstCollected",
+        "gstPending",
+        "challanNumber",
+        "filingStatus",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/UserProfile"
+      },
+      "description": "Owner-scoped business profile and GST configuration."
+    },
+    "/stacks/{stackId}": {
+      "schema": {
+        "$ref": "#/entities/StackItem"
+      },
+      "description": "Stack inventory batches showing available, upgoing, and sold-out stock."
+    },
+    "/customers/{customerId}": {
+      "schema": {
+        "$ref": "#/entities/Customer"
+      },
+      "description": "Client records with GSTIN and state details."
+    },
+    "/invoices/{invoiceId}": {
+      "schema": {
+        "$ref": "#/entities/Invoice"
+      },
+      "description": "GST invoices with initial payment, remaining balance, and payment status."
+    },
+    "/payments/{paymentId}": {
+      "schema": {
+        "$ref": "#/entities/PaymentRecord"
+      },
+      "description": "Customer payment receipts (initial advance and balance settlements)."
+    },
+    "/gstFilings/{filingId}": {
+      "schema": {
+        "$ref": "#/entities/GstFiling"
+      },
+      "description": "Monthly auto-generated GST statements and challan payments."
+    }
+  }
+}

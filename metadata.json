@@ -1,0 +1,8 @@
+{
+  "name": "ArthaBill GST",
+  "description": "Authenticated GST billing, stack inventory management, pending customer receivables tracking, and automated monthly GST return generation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

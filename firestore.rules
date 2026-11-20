@@ -1,0 +1,329 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Global Primitives ---
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+    function incoming() {
+      return request.resource.data;
+    }
+    function existing() {
+      return resource.data;
+    }
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function isEmailVerified() {
+      return request.auth.token.email_verified == true;
+    }
+    function isOwner(ownerId) {
+      return isSignedIn() && request.auth.uid == ownerId;
+    }
+
+    // --- Validation Blueprints ---
+    function isValidUserProfile(data) {
+      return data.keys().hasAll([
+          'uid', 'email', 'displayName', 'businessName', 'gstin', 'stateCode', 'address', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'uid', 'email', 'displayName', 'businessName', 'gstin', 'stateCode', 'district', 'address', 'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.uid)
+        && data.uid == request.auth.uid
+        && data.email is string && data.email.size() <= 200
+        && data.displayName is string && data.displayName.size() <= 100
+        && data.businessName is string && data.businessName.size() >= 1 && data.businessName.size() <= 140
+        && data.gstin is string && data.gstin.size() <= 20
+        && data.stateCode is string && data.stateCode.size() >= 1 && data.stateCode.size() <= 60
+        && (!('district' in data) || (data.district is string && data.district.size() <= 80))
+        && data.address is string && data.address.size() <= 300
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidStackItem(data) {
+      return data.keys().hasAll([
+          'ownerId', 'sku', 'name', 'hsnCode', 'category', 'unit', 'unitPrice', 'gstRate',
+          'availableQty', 'upgoingQty', 'soldQty', 'reorderLevel', 'stackStatus', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'ownerId', 'sku', 'name', 'hsnCode', 'category', 'unit', 'unitPrice', 'gstRate',
+          'availableQty', 'upgoingQty', 'soldQty', 'reorderLevel', 'stackStatus', 'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.ownerId)
+        && data.ownerId == request.auth.uid
+        && data.sku is string && data.sku.size() >= 1 && data.sku.size() <= 40
+        && data.name is string && data.name.size() >= 1 && data.name.size() <= 140
+        && data.hsnCode is string && data.hsnCode.size() >= 1 && data.hsnCode.size() <= 20
+        && data.category is string && data.category.size() >= 1 && data.category.size() <= 60
+        && data.unit is string && data.unit.size() >= 1 && data.unit.size() <= 20
+        && data.unitPrice is number && data.unitPrice >= 0
+        && data.gstRate is number && (data.gstRate in [0, 5, 12, 18, 28])
+        && data.availableQty is number && data.availableQty >= 0
+        && data.upgoingQty is number && data.upgoingQty >= 0
+        && data.soldQty is number && data.soldQty >= 0
+        && data.reorderLevel is number && data.reorderLevel >= 0
+        && data.stackStatus is string && data.stackStatus.size() <= 20 && (data.stackStatus in ['upgoing', 'in_stock', 'sold_out'])
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidCustomer(data) {
+      return data.keys().hasAll([
+          'ownerId', 'name', 'companyName', 'gstin', 'phone', 'email', 'stateCode', 'address', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'ownerId', 'name', 'companyName', 'gstin', 'phone', 'email', 'stateCode', 'address', 'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.ownerId)
+        && data.ownerId == request.auth.uid
+        && data.name is string && data.name.size() >= 1 && data.name.size() <= 120
+        && data.companyName is string && data.companyName.size() <= 140
+        && data.gstin is string && data.gstin.size() <= 20
+        && data.phone is string && data.phone.size() >= 1 && data.phone.size() <= 24
+        && data.email is string && data.email.size() <= 160
+        && data.stateCode is string && data.stateCode.size() >= 1 && data.stateCode.size() <= 60
+        && data.address is string && data.address.size() <= 300
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidInvoice(data) {
+      return data.keys().hasAll([
+          'ownerId', 'invoiceNumber', 'billingMonth', 'customerId', 'customerName', 'customerCompany',
+          'customerGstin', 'customerPhone', 'customerState', 'isInterState', 'itemsSummary', 'lineItems',
+          'taxableAmount', 'cgstAmount', 'sgstAmount', 'igstAmount', 'totalGstAmount', 'grandTotal',
+          'initialPaidAmount', 'paidAmount', 'remainingAmount', 'paymentStatus', 'dueDate', 'notes',
+          'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'ownerId', 'invoiceNumber', 'billingMonth', 'customerId', 'customerName', 'customerCompany',
+          'customerGstin', 'customerPhone', 'customerState', 'isInterState', 'itemsSummary', 'lineItems',
+          'taxableAmount', 'cgstAmount', 'sgstAmount', 'igstAmount', 'totalGstAmount', 'grandTotal',
+          'initialPaidAmount', 'paidAmount', 'remainingAmount', 'paymentStatus', 'dueDate', 'notes',
+          'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.ownerId)
+        && data.ownerId == request.auth.uid
+        && data.invoiceNumber is string && data.invoiceNumber.size() >= 1 && data.invoiceNumber.size() <= 40
+        && data.billingMonth is string && data.billingMonth.size() == 7 && data.billingMonth.matches('^\\d{4}-\\d{2}$')
+        && isValidId(data.customerId)
+        && data.customerName is string && data.customerName.size() >= 1 && data.customerName.size() <= 120
+        && data.customerCompany is string && data.customerCompany.size() <= 140
+        && data.customerGstin is string && data.customerGstin.size() <= 20
+        && data.customerPhone is string && data.customerPhone.size() <= 24
+        && data.customerState is string && data.customerState.size() >= 1 && data.customerState.size() <= 60
+        && data.isInterState is bool
+        && data.itemsSummary is string && data.itemsSummary.size() >= 1 && data.itemsSummary.size() <= 250
+        && data.lineItems is list && data.lineItems.size() >= 1 && data.lineItems.size() <= 20 && data.lineItems[0] is map
+        && data.taxableAmount is number && data.taxableAmount >= 0
+        && data.cgstAmount is number && data.cgstAmount >= 0
+        && data.sgstAmount is number && data.sgstAmount >= 0
+        && data.igstAmount is number && data.igstAmount >= 0
+        && data.totalGstAmount is number && data.totalGstAmount >= 0
+        && data.grandTotal is number && data.grandTotal >= 0
+        && data.initialPaidAmount is number && data.initialPaidAmount >= 0
+        && data.paidAmount is number && data.paidAmount >= 0 && data.paidAmount <= data.grandTotal
+        && data.remainingAmount is number && data.remainingAmount >= 0
+        && data.paymentStatus is string && data.paymentStatus.size() <= 16 && (data.paymentStatus in ['paid', 'partial', 'unpaid'])
+        && data.dueDate is string && data.dueDate.size() == 10 && data.dueDate.matches('^\\d{4}-\\d{2}-\\d{2}$')
+        && data.notes is string && data.notes.size() <= 400
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidPayment(data) {
+      return data.keys().hasAll([
+          'ownerId', 'invoiceId', 'invoiceNumber', 'customerId', 'customerName',
+          'amount', 'paymentMethod', 'referenceNo', 'billingMonth', 'createdAt'
+        ])
+        && data.keys().hasOnly([
+          'ownerId', 'invoiceId', 'invoiceNumber', 'customerId', 'customerName',
+          'amount', 'paymentMethod', 'referenceNo', 'billingMonth', 'createdAt'
+        ])
+        && isValidId(data.ownerId)
+        && data.ownerId == request.auth.uid
+        && isValidId(data.invoiceId)
+        && data.invoiceNumber is string && data.invoiceNumber.size() >= 1 && data.invoiceNumber.size() <= 40
+        && isValidId(data.customerId)
+        && data.customerName is string && data.customerName.size() >= 1 && data.customerName.size() <= 120
+        && data.amount is number && data.amount > 0
+        && data.paymentMethod is string && data.paymentMethod.size() <= 16 && (data.paymentMethod in ['UPI', 'NEFT', 'RTGS', 'Cheque', 'Cash'])
+        && data.referenceNo is string && data.referenceNo.size() <= 80
+        && data.billingMonth is string && data.billingMonth.size() == 7 && data.billingMonth.matches('^\\d{4}-\\d{2}$')
+        && data.createdAt is timestamp;
+    }
+
+    function isValidGstFiling(data) {
+      return data.keys().hasAll([
+          'ownerId', 'billingMonth', 'totalInvoices', 'totalTaxableValue',
+          'totalCgst', 'totalSgst', 'totalIgst', 'totalGstLiability',
+          'gstCollected', 'gstPending', 'challanNumber', 'filingStatus', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'ownerId', 'billingMonth', 'totalInvoices', 'totalTaxableValue',
+          'totalCgst', 'totalSgst', 'totalIgst', 'totalGstLiability',
+          'gstCollected', 'gstPending', 'challanNumber', 'filingStatus', 'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.ownerId)
+        && data.ownerId == request.auth.uid
+        && data.billingMonth is string && data.billingMonth.size() == 7 && data.billingMonth.matches('^\\d{4}-\\d{2}$')
+        && data.totalInvoices is number && data.totalInvoices >= 0
+        && data.totalTaxableValue is number && data.totalTaxableValue >= 0
+        && data.totalCgst is number && data.totalCgst >= 0
+        && data.totalSgst is number && data.totalSgst >= 0
+        && data.totalIgst is number && data.totalIgst >= 0
+        && data.totalGstLiability is number && data.totalGstLiability >= 0
+        && data.gstCollected is number && data.gstCollected >= 0
+        && data.gstPending is number && data.gstPending >= 0
+        && data.challanNumber is string && data.challanNumber.size() <= 60
+        && data.filingStatus is string && data.filingStatus.size() <= 16 && (data.filingStatus in ['generated', 'paid'])
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    // --- Collection Match Blocks ---
+    match /users/{userId} {
+      allow get: if isValidId(userId) && isOwner(userId);
+      allow list: if false;
+      allow create: if isValidId(userId)
+        && isSignedIn() && isEmailVerified()
+        && request.auth.uid == userId
+        && isValidUserProfile(incoming())
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isValidId(userId)
+        && isSignedIn() && isEmailVerified()
+        && request.auth.uid == userId
+        && isValidUserProfile(incoming())
+        && incoming().uid == existing().uid
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'displayName', 'businessName', 'gstin', 'stateCode', 'district', 'address', 'updatedAt'
+        ]);
+      allow delete: if false;
+    }
+
+    match /stacks/{stackId} {
+      allow get: if isValidId(stackId) && isOwner(existing().ownerId);
+      allow list: if isSignedIn() && existing().ownerId == request.auth.uid;
+      allow create: if isValidId(stackId)
+        && isSignedIn() && isEmailVerified()
+        && isValidStackItem(incoming())
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isValidId(stackId)
+        && isSignedIn() && isEmailVerified()
+        && isOwner(existing().ownerId)
+        && isValidStackItem(incoming())
+        && incoming().ownerId == existing().ownerId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'sku', 'name', 'hsnCode', 'category', 'unit', 'unitPrice', 'gstRate',
+          'availableQty', 'upgoingQty', 'soldQty', 'reorderLevel', 'stackStatus', 'updatedAt'
+        ]);
+      allow delete: if isValidId(stackId) && isOwner(existing().ownerId);
+    }
+
+    match /customers/{customerId} {
+      allow get: if isValidId(customerId) && isOwner(existing().ownerId);
+      allow list: if isSignedIn() && existing().ownerId == request.auth.uid;
+      allow create: if isValidId(customerId)
+        && isSignedIn() && isEmailVerified()
+        && isValidCustomer(incoming())
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isValidId(customerId)
+        && isSignedIn() && isEmailVerified()
+        && isOwner(existing().ownerId)
+        && isValidCustomer(incoming())
+        && incoming().ownerId == existing().ownerId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'name', 'companyName', 'gstin', 'phone', 'email', 'stateCode', 'address', 'updatedAt'
+        ]);
+      allow delete: if isValidId(customerId) && isOwner(existing().ownerId);
+    }
+
+    match /invoices/{invoiceId} {
+      allow get: if isValidId(invoiceId) && isOwner(existing().ownerId);
+      allow list: if isSignedIn() && existing().ownerId == request.auth.uid;
+      allow create: if isValidId(invoiceId)
+        && isSignedIn() && isEmailVerified()
+        && isValidInvoice(incoming())
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time
+        && existsAfter(/databases/$(database)/documents/customers/$(incoming().customerId))
+        && getAfter(/databases/$(database)/documents/customers/$(incoming().customerId)).data.ownerId == request.auth.uid;
+      allow update: if isValidId(invoiceId)
+        && isSignedIn() && isEmailVerified()
+        && isOwner(existing().ownerId)
+        && existing().paymentStatus != 'paid'
+        && isValidInvoice(incoming())
+        && incoming().ownerId == existing().ownerId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().paidAmount >= existing().paidAmount
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'paidAmount', 'remainingAmount', 'paymentStatus', 'notes', 'updatedAt'
+        ]);
+      allow delete: if false;
+    }
+
+    match /payments/{paymentId} {
+      allow get: if isValidId(paymentId) && isOwner(existing().ownerId);
+      allow list: if isSignedIn() && existing().ownerId == request.auth.uid;
+      allow create: if isValidId(paymentId)
+        && isSignedIn() && isEmailVerified()
+        && isValidPayment(incoming())
+        && incoming().createdAt == request.time
+        && existsAfter(/databases/$(database)/documents/invoices/$(incoming().invoiceId))
+        && getAfter(/databases/$(database)/documents/invoices/$(incoming().invoiceId)).data.ownerId == request.auth.uid;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    match /gstFilings/{filingId} {
+      allow get: if isValidId(filingId) && isOwner(existing().ownerId);
+      allow list: if isSignedIn() && existing().ownerId == request.auth.uid;
+      allow create: if isValidId(filingId)
+        && isSignedIn() && isEmailVerified()
+        && isValidGstFiling(incoming())
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isValidId(filingId)
+        && isSignedIn() && isEmailVerified()
+        && isOwner(existing().ownerId)
+        && existing().filingStatus != 'paid'
+        && isValidGstFiling(incoming())
+        && incoming().ownerId == existing().ownerId
+        && incoming().billingMonth == existing().billingMonth
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'totalInvoices', 'totalTaxableValue', 'totalCgst', 'totalSgst',
+            'totalIgst', 'totalGstLiability', 'gstCollected', 'gstPending', 'updatedAt'
+          ])
+          ||
+          (
+            incoming().filingStatus == 'paid'
+            && incoming().challanNumber.size() >= 1
+            && incoming().diff(existing()).affectedKeys().hasOnly([
+              'challanNumber', 'filingStatus', 'updatedAt'
+            ])
+          )
+        );
+      allow delete: if false;
+    }
+  }
+}
